@@ -1,0 +1,10 @@
+services:
+    anix.sult.listener:
+        class: anix\sult\event\main_listener
+        arguments:
+            - '@language'
+            - '@user'
+            - '@template'
+            - '@config'
+        tags:
+            - { name: event.listener }
