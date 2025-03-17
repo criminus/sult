@@ -91,18 +91,21 @@ class main_listener implements EventSubscriberInterface
         $user_cache = $event['user_cache'];
         $poster_id = $event['poster_id'];
 
+        if (!isset($user_cache[$poster_id])) {
+            return;
+        }
+
         //Get timezone for current user & poster
         $user_timezone = $this->user->data['user_timezone'];
-        $poster_timezone = $user_cache[$poster_id]['user_timezone'];
+        $poster_timezone = $user_cache[$poster_id]['user_timezone'] ?? null;
+
+        if ($poster_timezone === null) {
+            return;
+        }
 
         //If the user is not logged in, we use the board's current time
         if ($this->user->data['user_id'] == ANONYMOUS) {
             $user_timezone = $this->config['board_timezone'];
-        }
-
-        //If user is deleted, we use the board's current time
-        if (!$poster_timezone) {
-            $poster_timezone = $this->config['board_timezone'];
         }
 
         //Create DateTime for both timezones
@@ -114,7 +117,7 @@ class main_listener implements EventSubscriberInterface
 
         // Get current time in the poster's timezone
         $current_date = new \DateTime('now', $poster_tz);
-        $formatted_local_time = $this->user->format_date($current_date->getTimestamp(), 'D M d, Y g:i a');
+        $formatted_local_time = $this->user->format_date($current_date->getTimestamp());
 
         $event['post_row'] = array_merge($event['post_row'], [
             'POSTER_TIME'       => $formatted_local_time
@@ -152,7 +155,7 @@ class main_listener implements EventSubscriberInterface
 
         // Get current time in the members's timezone
         $current_date = new \DateTime('now', $member_tz);
-        $formatted_local_time = $this->user->format_date($current_date->getTimestamp(), 'D M d, Y g:i a');
+        $formatted_local_time = $this->user->format_date($current_date->getTimestamp());
 
         $this->template->assign_vars([
             'MEMBER_TIME_PROFILE'   => $formatted_local_time,
